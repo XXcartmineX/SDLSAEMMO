@@ -1,0 +1,46 @@
+	bool colX, colY;
+	fVector2 minVect1, minVect2;
+	fVector2 maxVect1, maxVect2;
+	for (auto entity : collisionableEntities)
+	{
+		entity->isCollisioning = false;
+		for (auto collisioner : collisionableEntities)
+		{
+			if (entity != collisioner)
+			{
+				colX = false;
+				colY = false;
+				if (entity->collider == Colliders::Box)
+				{
+					if (collisioner->collider == Colliders::Box)
+					{
+						minVect1 = findMinVertexRect(entity->vertex.rect);
+						minVect2 = findMinVertexRect(collisioner->vertex.rect);
+						maxVect1 = findMaxVertexRect(entity->vertex.rect);
+						maxVect2 = findMaxVertexRect(collisioner->vertex.rect);
+						if((minVect2.x >= minVect1.x &&
+							minVect2.x <= maxVect1.x) ||
+							(maxVect2.x <= maxVect1.x &&
+								maxVect2.x >= minVect1.x)) 
+						{
+							colX = true;
+						}
+						else break;
+						if ((minVect2.y >= minVect1.y &&
+							minVect2.y <= maxVect1.y) ||
+							(maxVect2.y <= maxVect1.y &&
+								maxVect2.y >= minVect1.y))
+						{
+							colY = true;
+						}
+						if (colX && colY)
+						{
+							entity->isCollisioning = true;
+							entity->collisionedEntities.push_back(collisioner);
+						}
+					}
+				}
+
+			}
+		}
+	}
