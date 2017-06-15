@@ -28,8 +28,10 @@ public:
 	inline static b2World* getWorld() { return world == nullptr ? world = new b2World(gravity) : world; }
 	inline static b2Vec2 getGravity() { return gravity; }
 	inline static bool QueueHasCleared() { return queueIsCleared; }
+	inline static bool ApplicationIsClosing() { return appIsClosing; }
 	inline static void LockDrawMutex() { SDL_LockMutex(drawMutex); }
 	inline static void UnlockDrawMutex() { SDL_UnlockMutex(drawMutex); }
+	inline static void ApplicationShouldClose(SDL_bool val) { appIsClosing = val; }
 	static int GetFrameLock();
 	static int getWidth();
 	static int getHeight();

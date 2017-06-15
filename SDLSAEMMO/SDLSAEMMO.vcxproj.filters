@@ -219,6 +219,12 @@
     <ClCompile Include="Box2D\Dynamics\b2WorldCallbacks.cpp">
       <Filter>Source Files\Box2D</Filter>
     </ClCompile>
+    <ClCompile Include="World.cpp">
+      <Filter>Source Files\Base classes</Filter>
+    </ClCompile>
+    <ClCompile Include="Client.cpp">
+      <Filter>Source Files\Base classes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainScene.h">
@@ -397,6 +403,12 @@
     </ClInclude>
     <ClInclude Include="Box2D\Box2D.h">
       <Filter>Header Files\Box2D</Filter>
+    </ClInclude>
+    <ClInclude Include="World.h">
+      <Filter>Header Files\Base classes</Filter>
+    </ClInclude>
+    <ClInclude Include="Client.h">
+      <Filter>Header Files\Base classes</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
