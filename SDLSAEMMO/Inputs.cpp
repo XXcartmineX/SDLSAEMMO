@@ -1,4 +1,5 @@
 #include "Inputs.h"
+
 FLAG Inputs::kA;
 FLAG Inputs::kB;
 FLAG Inputs::kC;

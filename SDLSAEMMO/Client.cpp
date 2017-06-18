@@ -1,5 +1,6 @@
 #include "Client.h"
 #include "RPGSAEMMOApp.h"
+#include <stdio.h>
 
 
 Client* Client::Instance = nullptr;
