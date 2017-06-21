@@ -225,6 +225,9 @@
     <ClCompile Include="Client.cpp">
       <Filter>Source Files\Base classes</Filter>
     </ClCompile>
+    <ClCompile Include="sqlite3.c">
+      <Filter>Source Files\Base classes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainScene.h">
@@ -408,6 +411,9 @@
       <Filter>Header Files\Base classes</Filter>
     </ClInclude>
     <ClInclude Include="Client.h">
+      <Filter>Header Files\Base classes</Filter>
+    </ClInclude>
+    <ClInclude Include="sqlite3.h">
       <Filter>Header Files\Base classes</Filter>
     </ClInclude>
   </ItemGroup>

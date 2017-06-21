@@ -42,6 +42,7 @@ private:
 		const struct sockaddr* _IN to, int _IN tolen);
 	void sendSafe(SOCKET _IN sock, const char* _IN buf, int _IN len, int _IN flags);
 	void recvSafe(SOCKET _IN sock,  char* _IN buf, int _IN len, int _IN flags);
+	void callback(void * refdb, int argc, char **argv, char **nomcolumna);
 	int ReadBytes(char _IN data, int _IN shift);
 	char LecturaDBits(int16_t x, int fila);
 	char LecturaDBits(int32_t w, int fila);

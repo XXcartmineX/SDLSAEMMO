@@ -1,5 +1,6 @@
 #include "RPGSAEMMOApp.h"
 #include <iostream>
+#include <cstdlib>
 
 std::queue<std::function<void()>> RPGSAEMMOApp::drawQueue;
 std::queue<std::function<void()>> RPGSAEMMOApp::physicsQueue;
