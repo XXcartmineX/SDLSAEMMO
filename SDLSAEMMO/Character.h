@@ -23,7 +23,7 @@ public:
 	void ChangeSprites(int s);
 	void flipX(bool x);
 	void draw(const int frames = 1);
-	void Move(fVector2& _newPos );
+	void Move(fVector2& _newPos);
 	void EnablePhysics2D(const bool& enable,
 		const b2BodyDef& bodydef = b2BodyDef(),
 		const b2PolygonShape& shape = b2PolygonShape(),
@@ -31,17 +31,43 @@ public:
 		const bool& isTrigger = false);
 	void AddForce(fVector2& _force);
 	void AddLinearImpulse(fVector2& _force);
+	void KeepAwake(const bool& _val);
 	void SetAlphaColor(uint8_t r, uint8_t g, uint8_t b);
+	void SetType(b2BodyType type);
+	void SetGravity(const float& gravity);
+	void SetPosition(const fVector2& _pos);
+	bool isCollisioningWithother(Character* const& other);
+	inline bool getFlip() { return isFlipped; }
 	virtual void Update();
 	inline fVector2 getCenter() { return (size) / 2; }
+	inline bool getIsRendering() { return isRendering; }
 	std::string name;
 	std::vector<std::vector<SDL_Surface*>> spriteSheets;
+	int ID = 0,
+		ctMap = 0,
+		matricula = 0,
+		lvl = 0,
+		Exp = 0,
+		maxLife = 0,
+		life = 0,
+		currWeap = 0,
+		armour = 0,
+		logic = 0,
+		luck = 0,
+		art = 0,
+		imagination = 0,
+		maxAttack = 0,
+		health = 0;
 	float rotAngle = 0;
 	float angle = 0;
 	fVector2 pos;
 	fVector2 size;
+	std::string spriteFileName = "",
+				clss = "",
+				pwd = "";
 	b2Body* charBody = nullptr;
 	b2PolygonShape bodyShape;
+	Character* parent = nullptr;
 
 protected:
 	virtual void OnCollisionEnter();
@@ -67,6 +93,11 @@ private:
 	void MoveBase(fVector2& _newPos);
 	void AddLinearImpulseBase(fVector2& _force);
 	void AddForceBase(fVector2& _newPos);
+	void KeepAwakeBase(const bool& _val);
+	void SetTypeBase(b2BodyType type);
+	void SetGravityBase(const float& gravity);
+	void SetPositionBase(fVector2& _pos);
+	bool isRendering = false;
 
 };
 

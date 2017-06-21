@@ -3,7 +3,6 @@
 //http://lazyfoo.net/tutorials/SDL/06_extension_libraries_and_loading_other_image_formats/index2.php
 //https://www.libsdl.org/projects/SDL_image/docs/SDL_image_frame.html
 //https://docs.google.com/document/d/1U9dTzY36119WHmrGLuYvK0dadx5YTFP99Ml_BgNm71s/edit
-
 Character::Character(std::string _name) : name(_name)
 {
 }
@@ -15,20 +14,31 @@ Character::Character(fVector2 _pos, fVector2 _size, std::string _name) : Charact
 }
 
 Character::Character(fVector2 _pos, fVector2 _size, int _life,
-	std::string _name) : Character(_pos,_size,_name)
+	std::string _name) : Character(_pos, _size, _name)
 {
 	life = _life;
 }
 
 Character::Character(fVector2 _pos, fVector2 _size, int _life,
 	std::string _spritePath, std::string _name) :
-	Character(_pos,_size,_life)
+	Character(_pos, _size, _life)
 {
 	name = _name;
 }
 
 Character::~Character()
 {
+	for (auto i : spriteSheets)
+	{
+		for (auto j : i)
+		{
+			SDL_FreeSurface(j);
+		}
+	}
+	RPGSAEMMOApp::getWorld()->DestroyBody(charBody);
+	delete posValues;
+	delete clipping;
+	delete center;
 }
 
 void Character::ChangeSprites(int s)
@@ -83,9 +93,12 @@ void Character::flipX(bool x)
 
 void Character::draw(const int frames)
 {
-	if (spriteSheets.size() == 0 || spriteSheets.at(currentSpriteSheet).size() == 0)
+	if (spriteSheets.size() == 0 || spriteSheets.at(currentSpriteSheet).size() == 0 || RPGSAEMMOApp::ApplicationIsClosing())
 		return;
-	posValues = new SDL_Rect{ (int)round(pos.x)-(int)RPGSAEMMOApp::camera.x,(int)round(pos.y) - (int)RPGSAEMMOApp::camera.y,(int)round(size.x),(int)round(size.y) };
+	posValues = new SDL_Rect{ (int)round(pos.x) - (int)RPGSAEMMOApp::camera.x,(int)round(pos.y) -
+		(int)RPGSAEMMOApp::camera.y,(int)round(size.x),(int)round(size.y) };
+	isRendering = ((posValues->x + posValues->w >= 0 && posValues->x <= RPGSAEMMOApp::getWidth()) ||
+		(posValues->y + posValues->h >= 0 && posValues->y <= RPGSAEMMOApp::getHeight()));
 	//if (pos.x + size.x >= RPGSAEMMOApp::getWidth())
 	//	posValues->w = (int)round((pos.x + size.x)) - RPGSAEMMOApp::getWidth();
 	//if (pos.y + size.y >= RPGSAEMMOApp::getHeight())
@@ -112,12 +125,12 @@ void Character::draw(const int frames)
 	//		clipping->h = (int)round(size.y + pos.y);
 	//	}
 	//}
-	SDL_Texture* renderTexture = 
-		SDL_CreateTextureFromSurface(RPGSAEMMOApp::getRenderer(),spriteSheets.at(currentSpriteSheet).at(currentSpriteIndex));
+	SDL_Texture* renderTexture =
+		SDL_CreateTextureFromSurface(RPGSAEMMOApp::getRenderer(), spriteSheets.at(currentSpriteSheet).at(currentSpriteIndex));
 	SDL_RenderCopyEx(RPGSAEMMOApp::getRenderer(), renderTexture, NULL, posValues, rotAngle, center, flip);
 	SDL_DestroyTexture(renderTexture);
 	delete posValues;
-	if(!(++counter %= frames))
+	if (!(++counter %= frames))
 		++currentSpriteIndex %= spriteSheets.at(currentSpriteSheet).size();
 
 }
@@ -146,6 +159,11 @@ void Character::AddLinearImpulse(fVector2 & _force)
 	RPGSAEMMOApp::AddToPhysicsQueue(std::bind(&Character::AddForceBase, this, _force));
 }
 
+void Character::KeepAwake(const bool & _val)
+{
+	RPGSAEMMOApp::AddToPhysicsQueue(std::bind(&Character::KeepAwakeBase, this, _val));
+}
+
 void Character::Update()
 {
 	if (charBody != nullptr) {
@@ -163,20 +181,23 @@ void Character::Update()
 			OnCollisionStay();
 		pos = charBody->GetPosition();
 		rotAngle = charBody->GetAngle() * radToDeg;
+		if (pos != charBody->GetPosition().tofVector2()) {
+			SetPosition(pos);
+		}
 	}
 	rotAngle += angle;
-	//RPGSAEMMOApp::AddToPhysicsQueue(std::bind(&Character::SetTransform, this));
+
 	angle = 0;
 }
 
 void Character::OnCollisionEnter()
 {
-	std::cout << "Entre!"<<std::endl;
+	//std::cout << "Entre!"<<std::endl;
 }
 
 void Character::OnCollisionExit()
 {
-	std::cout << "Sali!"<<std::endl;
+	//std::cout << "Sali!"<<std::endl;
 }
 
 void Character::OnCollisionStay()
@@ -192,6 +213,7 @@ void Character::EnablePhys2D(const bool & enable,
 	if (enable)
 	{
 		charBody = RPGSAEMMOApp::getWorld()->CreateBody(&bodydef);
+		charBody->SetGravityScale(1.f);
 		def.shape = &shape;
 		if (isTrigger)
 		{
@@ -215,19 +237,42 @@ void Character::SetTransform()
 void Character::MoveBase(fVector2& _newPos)
 {
 	if (charBody != nullptr)
-		charBody->SetLinearVelocity(_newPos.tobVec2());
+		charBody->SetLinearVelocity(_newPos.tobVec2() +
+		(parent != nullptr ? parent->charBody->GetLinearVelocity() : b2Vec2_zero));
 }
 
 void Character::AddLinearImpulseBase(fVector2 & _force)
 {
 	if (charBody != nullptr)
-		charBody->ApplyLinearImpulseToCenter(_force.tobVec2(), true);
+		charBody->ApplyLinearImpulseToCenter(_force.tobVec2() +
+		(parent != nullptr ? parent->charBody->GetLinearVelocity() : b2Vec2_zero), true);
 }
 
 void Character::AddForceBase(fVector2 & _newPos)
 {
 	if (charBody != nullptr)
-		charBody->ApplyForceToCenter(_newPos.tobVec2(), true);
+		charBody->ApplyForceToCenter(_newPos.tobVec2() +
+		(parent != nullptr ? parent->charBody->GetLinearVelocity() : b2Vec2_zero), true);
+}
+
+void Character::KeepAwakeBase(const bool & _val)
+{
+	charBody->SetAwake(_val);
+}
+
+void Character::SetTypeBase(b2BodyType type)
+{
+	charBody->SetType(type);
+}
+
+void Character::SetGravityBase(const float & gravity)
+{
+	charBody->SetGravityScale(gravity);
+}
+
+void Character::SetPositionBase(fVector2 & _pos)
+{
+	charBody->SetTransform(_pos.tobVec2(), rotAngle);
 }
 
 void Character::SetAlphaColor(uint8_t r, uint8_t g, uint8_t b)
@@ -240,4 +285,31 @@ void Character::SetAlphaColor(uint8_t r, uint8_t g, uint8_t b)
 		}
 	}
 }
+
+void Character::SetType(b2BodyType type)
+{
+	RPGSAEMMOApp::AddToPhysicsQueue(std::bind(&Character::SetTypeBase, this, type));
+}
+
+void Character::SetGravity(const float & gravity)
+{
+	RPGSAEMMOApp::AddToPhysicsQueue(std::bind(&Character::SetGravityBase, this, gravity));
+}
+
+void Character::SetPosition(const fVector2 & _pos)
+{
+	RPGSAEMMOApp::AddToPhysicsQueue(std::bind(&Character::SetPositionBase, this, _pos));
+}
+
+bool Character::isCollisioningWithother(Character * const & other)
+{
+	b2ContactEdge* col = charBody->GetContactList();
+	while (col != nullptr) {
+		if (col->other->GetUserData() == other)
+			return true;
+		col = col->next;
+	}
+	return false;
+}
+
 

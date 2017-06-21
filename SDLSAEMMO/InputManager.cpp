@@ -2,7 +2,7 @@
 
 int32_t InputManager::actions = 0;
 int16_t InputManager::positionsy = 0,
-	InputManager::positionsx = 0;
+		InputManager::positionsx = 0;
 const int32_t InputManager::mask = 1;
 
 

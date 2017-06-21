@@ -20,11 +20,12 @@ public:
 	bool LogIn(std::string x, std::string y);
 	void Update();
 	int iD = 0;
+	Character* pChar = nullptr;
 
 private:
 	static Client* Instance;
 	static WSADATA wsa;
-	struct sockaddr_in si_other;
+	sockaddr_in si_other;
 	int slen = sizeof(si_other);
 	SOCKET s;
 	const std::string iP = "1.1.1.1\0";
@@ -36,10 +37,15 @@ private:
 	void ConnectSafe(SOCKET _IN sock, const struct sockaddr* _IN serv, size_t _IN sizeOfserver);
 	void AdressFill(struct sockaddr_in _OUT sock, const char* _IN ip, int _IN port);
 	void recieveFromSafe(SOCKET _IN sock, char* _OUT  buf, int _IN len,
-		int _IN flags,struct sockaddr* _OUT from,int* _INOUT fromlen);
+		int _IN flags,struct sockaddr* _IN from,int* _IN fromlen);
 	void sendToSafe(SOCKET _IN sock, const char* _IN buf, int _IN len, int _IN flags,
 		const struct sockaddr* _IN to, int _IN tolen);
 	void sendSafe(SOCKET _IN sock, const char* _IN buf, int _IN len, int _IN flags);
 	void recvSafe(SOCKET _IN sock,  char* _IN buf, int _IN len, int _IN flags);
 	int ReadBytes(char _IN data, int _IN shift);
+	char LecturaDBits(int16_t x, int fila);
+	char LecturaDBits(int32_t w, int fila);
+	int16_t  toInt(char fila1, char fila2);
+	int32_t  toInt(char fila1, char fila2, char fila3, char fila4);
+
 };

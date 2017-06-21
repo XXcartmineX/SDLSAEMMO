@@ -13,13 +13,14 @@ typedef struct Node
 class DLinkedList
 {
 public:
+	DLinkedList();
 	Node* head;
 	Node* tail;
 
 	void insertHead(Character* cha);
 	
 	void InsertTail(Character* cha);
-
+	Node* FindByID(int id);
 	void Remove(Character* cha);
 	Node operator >> (const Node& c) const;
 	Node operator << (const Node& c) const;
@@ -28,7 +29,11 @@ public:
 class World
 {
 public:
+	static World* GetInstance();
+	DLinkedList lista;
+private: 
 	World();
-	~World();
+	static World* Instance;
+	
 };
 

@@ -2,15 +2,18 @@
 
 
 
+World* World::Instance = nullptr;
+World* World::GetInstance()
+{
+	return Instance == nullptr ? Instance = new World() : Instance;
+}
 World::World()
 {
 }
-
-
-World::~World()
+DLinkedList::DLinkedList()
 {
+	head = tail = nullptr;
 }
-
 void DLinkedList::insertHead(Character * cha)
 {
 	head = NULL;
@@ -31,6 +34,18 @@ void DLinkedList::InsertTail(Character * cha)
 		tail = pTemp;
 	}
 
+}
+
+Node * DLinkedList::FindByID(int id)
+{
+	Node* ptemp = head;
+	while (ptemp != nullptr)
+	{
+		if (ptemp->val->ID == id)
+			return ptemp;
+		ptemp = ptemp->next;
+	}
+	return nullptr;
 }
 
 void DLinkedList::Remove(Character * cha)

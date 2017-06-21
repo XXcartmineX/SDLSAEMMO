@@ -1,6 +1,7 @@
 #include "Client.h"
 #include "RPGSAEMMOApp.h"
-
+#include "World.h"
+#include "InputManager.h"
 
 Client* Client::Instance = nullptr;
 WSADATA Client::wsa;
@@ -11,9 +12,6 @@ Client* Client::getInstanse()
 
 bool Client::LogIn(std::string x, std::string y)
 {
-	
-
-
 	//Initialise winsock
 	printf("\nInitialising Winsock...");
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
@@ -42,6 +40,10 @@ bool Client::LogIn(std::string x, std::string y)
 		recvSafe(s, _iD, 2, 0);
 		iD += ReadBytes(_iD[0], 0);
 		iD += ReadBytes(_iD[1], 8);
+		char *arr = new char[496];
+		memset(arr, 0, 496);
+		recvSafe(s,arr,496,NULL);
+		while (pChar == nullptr);
 		closesocket(s);
 	}
 
@@ -56,13 +58,50 @@ void Client::Update()
 	AdressFill(si_other, iP.c_str(), UDPport);
 	while (RPGSAEMMOApp::ApplicationIsClosing())
 	{
+		char* arr = new char[2];
+		memset(arr, 0, 2);
+		int16_t sizeofcharacters = 0;
+		recieveFromSafe(s, arr, 2, NULL, (sockaddr *)&si_other, &slen);
+		sizeofcharacters = toInt(arr[0], arr[1]);
+		delete arr;
+		arr = new char[sizeofcharacters*8];
+		memset(arr, 0, sizeofcharacters * 8);
+		recieveFromSafe(s, arr, sizeofcharacters * 8, NULL, (sockaddr *)&si_other, &slen);
+		for (int i = 0; i < sizeofcharacters; ++i)
+		{
+			int32_t idi;
+			int16_t x, y;
+			idi = toInt(arr[i * 8], arr[(i * 8) + 1], arr[(i * 8) + 2], arr[(i * 8) + 3]);
+			x = toInt(arr[(i * 8) + 4], arr[(i * 8) + 5]);
+			y = toInt(arr[(i * 8) + 6], arr[(i * 8) + 7]);
+			Node* p = World::GetInstance()->lista.FindByID(idi);
+			if (p != nullptr && p->val->ID == idi)
+				p->val->SetPosition(fVector2((float)(x/100),(float)(y/100)));
+		}
+		delete arr;
+		arr = new char[12];
+		memset(arr, 0, 12);
+		arr[0] = LecturaDBits(iD, 1);
+		arr[1] = LecturaDBits(iD, 2);
+		arr[2] = LecturaDBits(iD, 3);
+		arr[3] = LecturaDBits(iD, 4);
+		arr[4] = LecturaDBits(InputManager::getActions(), 1);
+		arr[5] = LecturaDBits(InputManager::getActions(), 2);
+		arr[6] = LecturaDBits(InputManager::getActions(), 3);
+		arr[7] = LecturaDBits(InputManager::getActions(), 4);
+		arr[8] = LecturaDBits(InputManager::getPositionsX(), 1);
+		arr[9] = LecturaDBits(InputManager::getPositionsX(), 2);
+		arr[10] = LecturaDBits(InputManager::getPositionsY(), 1);	
+		arr[11] = LecturaDBits(InputManager::getPositionsY(), 2);
 		
 
-	
-
-		
+		sendToSafe(s, arr,12,NULL, (sockaddr *)&si_other, slen);
+		std::this_thread::sleep_for(std::chrono::milliseconds(16));
 	}
 }
+
+
+
 
 
 void Client::SocketSafe(const int _IN connectionType, 
@@ -207,7 +246,7 @@ void Client::AdressFill(sockaddr_in _OUT sock, const char* _IN ip,int _IN port)
 }
 
 void Client::recieveFromSafe(SOCKET _IN sock, char* _OUT  buf, int _IN len,
-	int _IN flags, struct sockaddr* _OUT from, int* _INOUT fromlen)
+	int _IN flags, struct sockaddr* _IN from, int* _IN fromlen)
 {
 	while (!RPGSAEMMOApp::ApplicationIsClosing() && recvfrom(sock,buf, len, flags,from,fromlen))
 	{
@@ -544,3 +583,55 @@ int Client::ReadBytes(char _IN data, int _IN shift)
 	ret = ret << shift;
 	return ret;
 }
+
+char Client::LecturaDBits(int16_t x, int fila)
+{
+	if (fila > 2 || fila < 1)
+		return 0;
+	char pene = 0;
+	for (int i = 0; i < 7; ++i)
+	{
+		pene += (x & (1 <<(i*fila)));
+	}
+	return pene;
+}
+
+char Client::LecturaDBits(int32_t w, int fila)
+{
+	if (fila > 4 || fila < 1)
+		return 0;
+	char penesote;
+	for (int i = 0; i < 7; ++i)
+	{
+		penesote += (w & (1 << (i*fila)));
+	}
+
+	return penesote;
+}
+
+int16_t Client::toInt(char fila1, char fila2)
+{
+	int16_t ano = 0;
+	for (int i = 0; i < 7; ++i)
+	{
+
+		ano += (fila1 & (1 << i));
+		ano += (fila2 & (1 << i + 8));
+	}
+	return ano;
+}
+
+int32_t Client::toInt(char fila1, char fila2, char fila3, char fila4)
+{
+	int32_t elChiquito = 0;
+	for (int i = 0; i < 7; ++i)
+	{
+		elChiquito += (fila1 & (1 << i));
+		elChiquito += (fila2 & (1 << i + 8));
+		elChiquito += (fila2 & (1 << i + 16));
+		elChiquito += (fila2 & (1 << i + 24));
+	}
+	return elChiquito;
+}
+
+
